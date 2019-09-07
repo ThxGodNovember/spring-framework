@@ -71,6 +71,7 @@ public class DefaultDocumentLoader implements DocumentLoader {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Using JAXP provider [" + factory.getClass().getName() + "]");
 		}
+		//建立builder    设置entityresolver
 		DocumentBuilder builder = createDocumentBuilder(factory, entityResolver, errorHandler);
 		return builder.parse(inputSource);
 	}
@@ -85,17 +86,21 @@ public class DefaultDocumentLoader implements DocumentLoader {
 	 */
 	protected DocumentBuilderFactory createDocumentBuilderFactory(int validationMode, boolean namespaceAware)
 			throws ParserConfigurationException {
-
+		//新建工厂
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		//命名空间 默认false
 		factory.setNamespaceAware(namespaceAware);
 
 		if (validationMode != XmlValidationModeDetector.VALIDATION_NONE) {
+			//标识 正在验证
 			factory.setValidating(true);
-
+			//检测模式   是否xsd
 			if (validationMode == XmlValidationModeDetector.VALIDATION_XSD) {
 				// Enforce namespace aware for XSD...
+				//开启命名空间
 				factory.setNamespaceAware(true);
 				try {
+					//设置schema 语言
 					factory.setAttribute(SCHEMA_LANGUAGE_ATTRIBUTE, XSD_SCHEMA_LANGUAGE);
 				}
 				catch (IllegalArgumentException ex) {

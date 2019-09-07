@@ -156,7 +156,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * Create a new AbstractAutowireCapableBeanFactory.
 	 */
 	public AbstractAutowireCapableBeanFactory() {
+		//这里主要是用来装载那些需要忽略   依赖注入的    类
 		super();
+		//忽略指定的接口的控制管理   实现这3个接口的类  都不会去寻找内部依赖  进行注入
 		ignoreDependencyInterface(BeanNameAware.class);
 		ignoreDependencyInterface(BeanFactoryAware.class);
 		ignoreDependencyInterface(BeanClassLoaderAware.class);
@@ -976,7 +978,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// Need to determine the constructor...
 		Constructor<?>[] ctors = determineConstructorsFromBeanPostProcessors(beanClass, beanName);
 		if (ctors != null ||
-				mbd.getResolvedAutowireMode() == RootBeanDefinition.AUTOWIRE_CONSTRUCTOR ||
+					mbd.getResolvedAutowireMode() == RootBeanDefinition.AUTOWIRE_CONSTRUCTOR ||
 				mbd.hasConstructorArgumentValues() || !ObjectUtils.isEmpty(args))  {
 			return autowireConstructor(beanName, mbd, ctors, args);
 		}

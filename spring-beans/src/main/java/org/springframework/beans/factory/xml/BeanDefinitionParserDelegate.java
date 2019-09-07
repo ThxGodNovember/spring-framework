@@ -339,6 +339,7 @@ public class BeanDefinitionParserDelegate {
 	 * @see #getDefaults()
 	 */
 	public void initDefaults(Element root, BeanDefinitionParserDelegate parent) {
+		//将xml转换成对应的属性值 例如是否需要懒加载
 		populateDefaults(this.defaults, (parent != null ? parent.defaults : null), root);
 		this.readerContext.fireDefaultsRegistered(this.defaults);
 	}
@@ -452,6 +453,7 @@ public class BeanDefinitionParserDelegate {
 		String nameAttr = ele.getAttribute(NAME_ATTRIBUTE);
 
 		List<String> aliases = new ArrayList<String>();
+		//可以看到 bean 支持多名称？
 		if (StringUtils.hasLength(nameAttr)) {
 			String[] nameArr = StringUtils.tokenizeToStringArray(nameAttr, MULTI_VALUE_ATTRIBUTE_DELIMITERS);
 			aliases.addAll(Arrays.asList(nameArr));
@@ -467,9 +469,10 @@ public class BeanDefinitionParserDelegate {
 		}
 
 		if (containingBean == null) {
+			//检测重名
 			checkNameUniqueness(beanName, aliases, ele);
 		}
-
+		//开始搞成beandefinition啦~~~
 		AbstractBeanDefinition beanDefinition = parseBeanDefinitionElement(ele, beanName, containingBean);
 		if (beanDefinition != null) {
 			if (!StringUtils.hasText(beanName)) {
@@ -534,7 +537,7 @@ public class BeanDefinitionParserDelegate {
 	 */
 	public AbstractBeanDefinition parseBeanDefinitionElement(
 			Element ele, String beanName, BeanDefinition containingBean) {
-
+		//解析状态    记录入口 方便用来操作   和获取入口信息   用的是stack  太帅了
 		this.parseState.push(new BeanEntry(beanName));
 
 		String className = null;
@@ -548,18 +551,23 @@ public class BeanDefinitionParserDelegate {
 				parent = ele.getAttribute(PARENT_ATTRIBUTE);
 			}
 			AbstractBeanDefinition bd = createBeanDefinition(className, parent);
-
+			//属性
 			parseBeanDefinitionAttributes(ele, beanName, containingBean, bd);
+			//描述
 			bd.setDescription(DomUtils.getChildElementValueByTagName(ele, DESCRIPTION_ELEMENT));
-
+			//解析元数据标签
 			parseMetaElements(ele, bd);
+			//解析LOOKUP_METHOD_ELEMENT标签
 			parseLookupOverrideSubElements(ele, bd.getMethodOverrides());
+			//replaced-method
 			parseReplacedMethodSubElements(ele, bd.getMethodOverrides());
-
+			//constructor-arg标签
 			parseConstructorArgElements(ele, bd);
+			//property 标签
 			parsePropertyElements(ele, bd);
+			//qualifier 标签
 			parseQualifierElements(ele, bd);
-
+			//设置resource
 			bd.setResource(this.readerContext.getResource());
 			bd.setSource(extractSource(ele));
 
@@ -1423,7 +1431,10 @@ public class BeanDefinitionParserDelegate {
 	}
 
 	public BeanDefinition parseCustomElement(Element ele, BeanDefinition containingBd) {
+		//获取自定义标签对应的   xmlns:myname="http://www.lexueba.com/schema/user"
 		String namespaceUri = getNamespaceURI(ele);
+
+
 		NamespaceHandler handler = this.readerContext.getNamespaceHandlerResolver().resolve(namespaceUri);
 		if (handler == null) {
 			error("Unable to locate Spring NamespaceHandler for XML schema namespace [" + namespaceUri + "]", ele);
@@ -1443,12 +1454,14 @@ public class BeanDefinitionParserDelegate {
 
 		// Decorate based on custom attributes first.
 		NamedNodeMap attributes = ele.getAttributes();
+		//因为虽然外层是spring的属性 但是里面还是有可能是自定义的属性 所以需要进行自定义属性的检查
 		for (int i = 0; i < attributes.getLength(); i++) {
 			Node node = attributes.item(i);
 			finalDefinition = decorateIfRequired(node, finalDefinition, containingBd);
 		}
 
 		// Decorate based on custom nested elements.
+		//自定义的标签
 		NodeList children = ele.getChildNodes();
 		for (int i = 0; i < children.getLength(); i++) {
 			Node node = children.item(i);

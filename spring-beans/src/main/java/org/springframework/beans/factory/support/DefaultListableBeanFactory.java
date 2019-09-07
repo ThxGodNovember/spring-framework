@@ -163,6 +163,13 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	 * @param parentBeanFactory the parent BeanFactory
 	 */
 	public DefaultListableBeanFactory(BeanFactory parentBeanFactory) {
+		/**
+		 *  默认的很多实现都在这里做啦~~  beanfactory
+		 *  例如maps的创建
+		 *  beandefinitionmap的创建等~~~
+		 */
+
+
 		super(parentBeanFactory);
 	}
 

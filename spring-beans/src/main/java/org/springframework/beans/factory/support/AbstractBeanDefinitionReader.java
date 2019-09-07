@@ -78,13 +78,16 @@ public abstract class AbstractBeanDefinitionReader implements EnvironmentCapable
 	 */
 	protected AbstractBeanDefinitionReader(BeanDefinitionRegistry registry) {
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
+		// xmlbeanfactory
 		this.registry = registry;
 
 		// Determine ResourceLoader to use.
+		//判断是否什么类型的resourceloader  是xml的咧 还是properties
 		if (this.registry instanceof ResourceLoader) {
 			this.resourceLoader = (ResourceLoader) this.registry;
 		}
 		else {
+			//xml
 			this.resourceLoader = new PathMatchingResourcePatternResolver();
 		}
 
@@ -93,6 +96,7 @@ public abstract class AbstractBeanDefinitionReader implements EnvironmentCapable
 			this.environment = ((EnvironmentCapable) this.registry).getEnvironment();
 		}
 		else {
+			//默认标准环境
 			this.environment = new StandardEnvironment();
 		}
 	}

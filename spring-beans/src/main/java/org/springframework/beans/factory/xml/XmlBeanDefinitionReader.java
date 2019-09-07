@@ -300,6 +300,8 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	 * @throws BeanDefinitionStoreException in case of loading or parsing errors
 	 */
 	public int loadBeanDefinitions(Resource resource) throws BeanDefinitionStoreException {
+		//new EncodedResource(resource)  加密resource
+		//load  准备加载  在spring中 do开头的才比较可能是真正进行加载的地方
 		return loadBeanDefinitions(new EncodedResource(resource));
 	}
 
@@ -315,7 +317,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 		if (logger.isInfoEnabled()) {
 			logger.info("Loading XML bean definitions from " + encodedResource.getResource());
 		}
-
+		//获取已经使用过的配置文件
 		Set<EncodedResource> currentResources = this.resourcesCurrentlyBeingLoaded.get();
 		if (currentResources == null) {
 			currentResources = new HashSet<EncodedResource>(4);
@@ -326,12 +328,14 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 					"Detected cyclic loading of " + encodedResource + " - check your import definitions!");
 		}
 		try {
+			//获取转码后的资源字节流
 			InputStream inputStream = encodedResource.getResource().getInputStream();
 			try {
 				InputSource inputSource = new InputSource(inputStream);
 				if (encodedResource.getEncoding() != null) {
 					inputSource.setEncoding(encodedResource.getEncoding());
 				}
+				//终于解析啦~~~  进行beandefinition的装载
 				return doLoadBeanDefinitions(inputSource, encodedResource.getResource());
 			}
 			finally {
@@ -385,9 +389,12 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	protected int doLoadBeanDefinitions(InputSource inputSource, Resource resource)
 			throws BeanDefinitionStoreException {
 		try {
+			//先看下文件是什么验证模式   是dtd  还是xsd还是自动
 			int validationMode = getValidationModeForResource(resource);
+			//默认的documentloader进行load  返回document   loadDocument包括   资源流，entityresolver（解析器，用来找本地文件进行验证，如果没有这个话会上网找，会很慢），验证的模式，是否命名空间（默认false）
 			Document doc = this.documentLoader.loadDocument(
 					inputSource, getEntityResolver(), this.errorHandler, validationMode, isNamespaceAware());
+			//进行beandefinitions的注册
 			return registerBeanDefinitions(doc, resource);
 		}
 		catch (BeanDefinitionStoreException ex) {
@@ -491,7 +498,9 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	public int registerBeanDefinitions(Document doc, Resource resource) throws BeanDefinitionStoreException {
 		BeanDefinitionDocumentReader documentReader = createBeanDefinitionDocumentReader();
 		documentReader.setEnvironment(getEnvironment());
+		//获取原来beandefinition 的已经注册数目
 		int countBefore = getRegistry().getBeanDefinitionCount();
+		//进行注册
 		documentReader.registerBeanDefinitions(doc, createReaderContext(resource));
 		return getRegistry().getBeanDefinitionCount() - countBefore;
 	}
@@ -510,9 +519,21 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	 * Create the {@link XmlReaderContext} to pass over to the document reader.
 	 */
 	protected XmlReaderContext createReaderContext(Resource resource) {
+		/*
+
+			默认的   那样就会找 spring.handlers  文件啦       可以找到默认的handlers
+			这里有比较申请的地方 就是他们location是先有，但是具体的 是在tostring的时候才去加载
+			这里有3个handlers
+			http\://www.springframework.org/schema/c=org.springframework.beans.factory.xml.SimpleConstructorNamespaceHandler
+			http\://www.springframework.org/schema/p=org.springframework.beans.factory.xml.SimplePropertyNamespaceHandler
+			http\://www.springframework.org/schema/util=org.springframework.beans.factory.xml.UtilNamespaceHandler
+
+		 */
+
 		if (this.namespaceHandlerResolver == null) {
 			this.namespaceHandlerResolver = createDefaultNamespaceHandlerResolver();
 		}
+		//构建readercontext   包括了  beandefinition完成后的监听器
 		return new XmlReaderContext(resource, this.problemReporter, this.eventListener,
 				this.sourceExtractor, this, this.namespaceHandlerResolver);
 	}
